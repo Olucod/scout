@@ -1,0 +1,334 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Roofer WhatsApp Sender</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+body{margin:0}
+/* Layout: header + follow-up monitor + filters over a single-column lead list; each lead row has a send button and an Update panel for logging the reply */
+:root{--bg:#eef1f4; --panel:#ffffff; --ink:#18212b; --muted:#5b6876; --line:#d6dde4;--accent:#2f5d86; --accent-soft:#dde8f2; --go:#1f8f4e; --go-ink:#ffffff; --go-soft:#dcf1e4; --done:#8a97a4;--warn:#a4620f; --warn-soft:#fbeedb; --bad:#b4372e; --bad-soft:#f8e1de; --demo:#6b3fa0; --demo-soft:#ece3f7;--display:"Barlow Condensed","Arial Narrow",sans-serif; --body:"Public Sans",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12181e; --panel:#1a2229; --ink:#e6ebf0; --muted:#98a5b2; --line:#2c3843;--accent:#8db7dc; --accent-soft:#1f3346; --go:#2fae66; --go-ink:#07130c; --go-soft:#173326; --done:#6c7986;--warn:#e7a54a; --warn-soft:#3a2b16; --bad:#f08a80; --bad-soft:#3d1f1c; --demo:#c3a4ee; --demo-soft:#2e2340; color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12181e; --panel:#1a2229; --ink:#e6ebf0; --muted:#98a5b2; --line:#2c3843;--accent:#8db7dc; --accent-soft:#1f3346; --go:#2fae66; --go-ink:#07130c; --go-soft:#173326; --done:#6c7986;--warn:#e7a54a; --warn-soft:#3a2b16; --bad:#f08a80; --bad-soft:#3d1f1c; --demo:#c3a4ee; --demo-soft:#2e2340; color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;padding-inline:16px;padding-block:20px 48px;overflow-x:hidden}
+button,input,textarea{font:inherit;color:inherit}
+.wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:16px;min-width:0}
+h1{font-family:var(--display);font-size:2.2rem;letter-spacing:.01em;margin:0;line-height:1.05;text-wrap:balance}
+h2{font-family:var(--display);font-size:1.35rem;margin:0;line-height:1.1}
+.sub{color:var(--muted);margin:4px 0 0;max-width:62ch}
+.banner{border-radius:10px;padding:10px 14px;font-size:.88rem;border:1px solid var(--line);background:var(--panel)}
+.banner.bad{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.banner.warn{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.banner button{margin-left:6px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;font-variant-numeric:tabular-nums}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-align:left;cursor:pointer;min-width:0}
+.stat b{font-family:var(--display);font-size:1.7rem;display:block;line-height:1}
+.stat span{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);display:block;margin-top:4px}
+.stat.hot{border-color:var(--go)}
+.stat.hot b{color:var(--go)}
+.stat.demo b{color:var(--demo)}
+.stat.limit b{color:var(--bad)}
+.monitor{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.days{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:6px}
+.dayc{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:.78rem;color:var(--muted);min-width:0}
+.dayc b{display:block;color:var(--ink);font-size:.82rem}
+button.dayc{background:var(--panel);text-align:left;cursor:pointer;font:inherit;font-size:.78rem}
+.dayc.today{border-color:var(--go)}
+.dayc.over{border-color:var(--bad)}
+.dayc.over b{color:var(--bad)}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--line)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;min-width:0}
+.chip{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:5px 12px;font:500 .85rem var(--body);cursor:pointer;max-width:100%}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+.chip.alert{border-color:var(--go)}
+input[type=search]{flex:1;min-width:0;width:100%;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:8px 12px;font-size:16px}
+details.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+summary{cursor:pointer;font-weight:600}
+details.box textarea{width:100%;min-height:220px;margin-top:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:13px/1.5 var(--mono);padding:10px}
+.tlabel{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:12px;display:block}
+.hint{font-size:.82rem;color:var(--muted)}
+.btn-sm{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:6px;padding:6px 10px;font:500 .82rem var(--body);cursor:pointer;min-height:34px}
+.btn-sm.on{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+.btn-sm.demo.on{background:var(--demo);border-color:var(--demo)}
+.btn-sm.bad.on{background:var(--bad);border-color:var(--bad)}
+ul{list-style:none;margin:0;padding:0;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 14px;align-items:center;padding:12px 14px;border-top:1px solid var(--line);min-width:0}
+li:first-child{border-top:0}
+.who{min-width:0}
+.name{font-weight:600;overflow-wrap:anywhere}
+.meta{display:flex;gap:6px 8px;flex-wrap:wrap;align-items:center;font-size:.82rem;color:var(--muted);margin-top:2px;min-width:0}
+.phone{font-family:var(--mono);font-size:.8rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;padding:1px 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.pill.nosite{background:var(--warn-soft);color:var(--warn)}
+.pill.due{background:var(--go);color:var(--go-ink)}
+.pill.over{background:var(--bad);color:#fff}
+.pill.wait{background:var(--line);color:var(--muted)}
+.pill.fin{background:transparent;border:1px solid var(--line);color:var(--done)}
+.pill.demo{background:var(--demo-soft);color:var(--demo)}
+.pill.later{background:var(--warn-soft);color:var(--warn)}
+.pill.stop{background:var(--bad-soft);color:var(--bad)}
+.pill.wa{background:var(--go-soft);color:var(--go)}
+.stage{font-size:.8rem;color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
+.note-line{font-size:.8rem;color:var(--ink);margin-top:2px;overflow-wrap:anywhere;font-style:italic}
+.acts{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;min-width:0}
+a.send{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--go);color:var(--go-ink);text-decoration:none;font-weight:600;font-size:.9rem;padding:8px 14px;border-radius:8px;white-space:nowrap;min-height:40px}
+a.send.early{background:transparent;color:var(--go);border:1px solid var(--go)}
+a.send.plain{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+a.send:focus-visible,.chip:focus-visible,.btn-sm:focus-visible,.stat:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+details.upd{grid-column:1/-1;border-top:1px dashed var(--line);padding-top:8px;min-width:0}
+details.upd summary{font-size:.85rem;color:var(--accent);font-weight:600;list-style:none;display:inline-flex;align-items:center;gap:6px;min-height:32px}
+details.upd summary::-webkit-details-marker{display:none}
+details.upd summary::before{content:"+";display:inline-grid;place-items:center;width:18px;height:18px;border:1px solid var(--accent);border-radius:4px;font-size:.8rem}
+details.upd[open] summary::before{content:"-"}
+.panel{display:flex;flex-direction:column;gap:10px;margin-top:8px;min-width:0}
+.panel .grp{display:flex;flex-wrap:wrap;gap:6px;min-width:0}
+.later-box{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-width:0}
+.later-box input[type=date]{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:5px 8px;font-size:16px;min-height:34px;max-width:100%}
+.panel textarea{width:100%;min-height:70px;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:8px 10px;font-size:16px;resize:vertical}
+.tl{list-style:none;margin:0;padding:0;border:0;background:transparent;font-size:.78rem;color:var(--muted)}
+.tl li{display:block;padding:2px 0;border:0}
+.lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.empty{padding:24px;text-align:center;color:var(--muted)}
+.more{display:block;width:100%;padding:12px;border:0;border-top:1px solid var(--line);background:transparent;color:var(--accent);font:600 .9rem var(--body);cursor:pointer}
+li.done .name{color:var(--done)}
+body{padding-bottom:96px}
+.undobar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:20;width:min(828px,calc(100% - 24px));background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 12px 10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.undobar[hidden]{display:none}
+.undobar .msg{flex:1 1 auto;min-width:0;font-size:.85rem;line-height:1.3;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.undobar .msg b{font-weight:600}
+.undobar button{flex:0 0 auto;border:0;background:var(--go);color:var(--go-ink);border-radius:8px;padding:8px 14px;font:600 .88rem var(--body);cursor:pointer;min-height:40px;white-space:nowrap}
+.undobar button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn-sm.undo{border-color:var(--warn);color:var(--warn)}
+@media (max-width:560px){
+li{grid-template-columns:minmax(0,1fr)}
+.acts{justify-content:flex-start}
+.bar{position:static}
+a.send{flex:1 1 100%}
+}
+</style></head><body>
+<div class="wrap">
+  <header>
+    <h1>Roofer WhatsApp Sender</h1>
+    <p class="sub">One main message, then one follow-up on day 3. Tap the green button and hit send in WhatsApp. When a roofer replies, open <b>Update</b> on their row and log what they said: <b>Demo requested</b>, <b>Message me later</b> (pick a date and the page reminds you), <b>Replied</b>, <b>Stop</b> or <b>Not on WhatsApp</b>.</p>
+  </header>
+  <div id="banners"></div>
+  <div class="stats" id="stats"></div>
+  <section class="monitor" aria-label="Follow-up monitor">
+    <div class="row" style="justify-content:space-between"><h2>Follow-up monitor</h2><span class="hint" id="today"></span></div>
+    <div class="days" id="days"></div>
+  </section>
+  <div class="bar">
+    <div class="row" id="statuses"></div>
+    <div class="row" id="countries"></div>
+    <div class="row" id="sites"></div>
+    <div class="row" id="wa"></div>
+    <div class="row"><input type="search" id="q" placeholder="Search name, city or phone" aria-label="Search name, city or phone"></div>
+  </div>
+  <ul id="list"></ul>
+  <details class="box">
+    <summary>Backup and export</summary>
+    <p class="hint">Your progress lives in this browser only. Download a backup every few days so nothing is lost if the browser is cleared or you switch device. Import it on any device to carry on.</p>
+    <div class="row">
+      <button class="btn-sm" id="bk" type="button">Download backup</button>
+      <label class="btn-sm" for="imp" style="display:inline-flex;align-items:center">Import backup</label>
+      <input type="file" id="imp" accept=".json,application/json" hidden>
+      <button class="btn-sm" id="csv" type="button">Export results (CSV)</button>
+    </div>
+    <p class="hint" id="bkinfo"></p>
+  </details>
+  <details class="box">
+    <summary>Edit messages</summary>
+    <p class="hint">Use {name} and {city}. Edits are saved in this browser only.</p>
+    <div id="editors"></div>
+    <div class="row" style="margin-top:8px"><button class="btn-sm" id="reset" type="button">Restore original wording</button></div>
+  </details>
+</div>
+<div class="undobar" id="undobar" hidden role="status" aria-live="polite"><div class="msg" id="undomsg"></div><button type="button" id="undoall">Undo</button></div>
+<script>
+const DATA=[{"n": "Alex&Chris Window Cleaning", "p": "447459609893", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "Apple Shine Cleaning Services", "p": "447494417027", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "Ben's Gutters London", "p": "442081943011", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "BIKE BUBL Window Cleaning (South West London)", "p": "447950462263", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "Blackheath and Greenwich Window & Gutter Cleaning Service", "p": "442031377355", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "Blocked Gutters", "p": "447931902710", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "City Guttering London", "p": "443301334701", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "Cleano", "p": "442033704040", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "ClearWorks", "p": "447999521872", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "CNP Window Cleaning Services Westminster", "p": "447442048821", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "Commercial & Residential Window Cleaning Islington & London", "p": "447411664823", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "DP Window & Gutter Cleaning", "p": "447818818760", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "Enfield/Barnet/north London Gutter Cleaning services", "p": "447728623336", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "EverClean London", "p": "447522929304", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "Gorgeous Gutters", "p": "447738646068", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "GutterPRO", "p": "442036032947", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "GutterPRO Gutter Cleaning", "p": "442036423974", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "Gutters Gurus", "p": "447588251160", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "Gutterscleaning.co.uk", "p": "447703415054", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "Hamilton Roofing And Building", "p": "442072052087", "c": "London", "r": "ENG", "k": "UK", "w": "Runs Google Ads", "v": 0}, {"n": "J C Smith Cleaning Services", "p": "442071934557", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "JB Window Cleaning Services", "p": "447494319933", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "JC Servicess", "p": "447860776418", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "London Gutter Clean", "p": "442089455711", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "MRH Window Cleaning & Gutter Service", "p": "447305884139", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "One Call Roof & Gutter Services", "p": "447756985518", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "P&M Gutter Service", "p": "447944654477", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "Pow Wash", "p": "447565708252", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "Power Clean", "p": "447469718844", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "R2R Window & gutter Cleaning West London", "p": "447880802678", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "Shine Bright Cleaning", "p": "442031510796", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "South London Guttering", "p": "447518303565", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "South West London and Surrey Gutter Cleaning", "p": "447442359511", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "Spray LDN", "p": "442039579440", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "Starbright", "p": "447859285110", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}, {"n": "Topclass Gutter Cleaning & Repairs", "p": "447946358453", "c": "London", "r": "ENG", "k": "UK", "w": "Website listed (URL not in paste)", "v": 0}];
+const TPL={"A": "Hi {name} team,\n\nCan I build {name} a free \"talking\" landing page? It answers homeowners' questions, books inspections 24/7 and captures every lead, even while you're up on a roof.\n\nI can also set up any of these for you:\n• Booking reminders (fewer no-shows)\n• Missed call text back\n• 5-star Google review requests\n• AI receptionist for calls and chat\n• Win-back messages for past clients\n• Local marketing to win more jobs\n\nEverything is built free. You only pay once it's done and you love it.\n\nJust reply with a number:\n1. Yes, show me... click here: radiancetechy.com\n2. Not now\n3. Stop messages\n\nKenny, Radiance Tech", "B": "Hi {name} team,\n\nI noticed {name} either doesn't have a website or it isn't listed on your Google profile, so homeowners searching for gutter cleaners in {city} may be finding other companies first.\n\nCan I build you a free \"talking\" landing page? It answers homeowners' questions, books inspections 24/7 and captures every lead, even while you're up on a roof.\n\nI can also set up any of these for you:\n• Booking reminders (fewer no-shows)\n• Missed call text back\n• 5-star Google review requests\n• AI receptionist for calls and chat\n• Win-back messages for past clients\n• Local marketing to win more jobs\n\nEverything is built free. You only pay once it's done and you love it.\n\nJust reply with a number:\n1. Yes, show me... click here: radiancetechy.com\n2. Not now\n3. Stop messages\n\nKenny, Radiance Tech", "F1": "Hi {name} team, just following up. Everything is built free and you only pay once it's done and you love it. Want me to start on {name}?\n\nReply 1 for yes, or 3 to stop messages.\n\nKenny, Radiance Tech", "L": "Hi {name} team, you asked me to check back with you, so here I am.\n\nStill interested in a free talking landing page for {name}? It's built free and you only pay once it's done and you love it.\n\nReply 1 for yes, or 3 to stop messages.\n\nKenny, Radiance Tech"};
+const DAY=86400000, FU_GAP=3, PAGE=60, DAILY_CAP=50;
+let storageOK=true;
+try{localStorage.setItem('__t','1');localStorage.removeItem('__t')}catch(e){storageOK=false}
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){storageOK=false;return false}}};
+const KEYS=[['A','Main message, has website'],['B','Main message, no website'],['F1','Follow-up (day 3)'],['L','Check-in (for "message me later")']];
+let T={};KEYS.forEach(([k])=>T[k]=store.get('t_'+k,TPL[k]));
+let log=store.get('log',{});
+let undoStack=store.get('undoStack',[]).filter(e=>log[e.p]&&log[e.p].h&&log[e.p].h.length);
+let wa='all', ctry='All', site='all', status=store.get('status','all'), q='', shown=PAGE;
+const openRows=new Set();
+const $=s=>document.querySelector(s);
+const CN={UK:'UK',US:'USA',CA:'Canada'};
+const BY={};DATA.forEach(d=>BY[d.p]=d);
+const COUNTRIES=[['All','All countries'],...['UK','US','CA'].filter(c=>DATA.some(d=>d.k===c)).map(c=>[c,CN[c]])];
+const now=()=>Date.now();
+const sod=t=>{const x=new Date(t);x.setHours(0,0,0,0);return x.getTime()};
+const L=d=>log[d.p]||{s:0,t:0};
+const dueAt=r=>r.s===1?r.t+FU_GAP*DAY:null;
+function st(d){const r=L(d);
+if(r.x==='stop')return 'stop';if(r.x==='nowa')return 'nowa';if(r.x==='demo')return 'demo';if(r.x==='replied')return 'replied';
+if(r.x==='later')return (r.cb&&now()>=r.cb&&!(r.ci&&r.ci>=r.cb))?'laterdue':'later';
+if(!r.s)return 'new';if(r.s===1)return now()>=dueAt(r)?'due':'wait';return 'nore'}
+function tplFor(d){const s=st(d);if(s==='laterdue'||s==='later')return 'L';return L(d).s===0?(d.w?'A':'B'):'F1'}
+function msg(d,k){return T[k||tplFor(d)].replaceAll('{name}',d.n).replaceAll('{city}',d.c||'your area')}
+function link(d,k){return 'https://wa.me/'+d.p+'?text='+encodeURIComponent(msg(d,k))}
+function fmt(p){if(p.startsWith('1'))return '+1 ('+p.slice(1,4)+') '+p.slice(4,7)+'-'+p.slice(7);if(p.startsWith('44'))return '+44 '+p.slice(2,6)+' '+p.slice(6);return '+'+p}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function day(t){return new Date(t).toLocaleDateString(undefined,{month:'short',day:'numeric'})}
+function dt(t){return new Date(t).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}
+function isoDate(t){const x=new Date(t);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')}
+function daysBetween(a,b){return Math.round((sod(b)-sod(a))/DAY)}
+const SITES=[['all','All sites'],['has','Has site'],['none','No website']];
+const STATUSES=[['all','All'],['new','Not contacted'],['due','Follow-up due'],['wait','Waiting'],['laterdue','Call back due'],['later','Message later'],['demo','Demo requested'],['replied','Replied'],['nore','No reply'],['stop','Stopped'],['nowa','Not on WhatsApp']];
+const inC=d=>ctry==='All'||d.k===ctry;
+const inS=(d,k)=>k==='all'||(k==='has'?!!d.w:!d.w);
+const inW=(d,k)=>k==='all'||(k==='yes'?d.v===1:d.v!==1);
+const WA=[['all','All numbers'],['yes','WhatsApp confirmed'],['unk','Not confirmed']];
+const base=d=>inC(d)&&inS(d,site)&&inW(d,wa);
+const SEND_ACTS=['Main message sent','Follow-up sent','Check-in sent'];
+function snapshot(r){const {h,...rest}=r;return JSON.parse(JSON.stringify(rest))}
+function act(p,fn,label){const r=log[p]||{s:0,t:0};const before=snapshot(r);const next=fn({...before});next.ev=[...(before.ev||[]),{a:label,t:now()}].slice(-40);next.h=[...(r.h||[]),before].slice(-30);log[p]=next;undoStack.push({p,a:label,t:now()});undoStack=undoStack.slice(-100);persist()}
+function undoRow(p){const r=log[p];if(!r||!r.h||!r.h.length)return false;const h=r.h.slice();const prev=h.pop();log[p]={...prev,h};if(!log[p].s&&!log[p].x&&!log[p].note&&!h.length)delete log[p];for(let i=undoStack.length-1;i>=0;i--)if(undoStack[i].p===p){undoStack.splice(i,1);break}persist();return true}
+function undoLast(){while(undoStack.length){const e=undoStack[undoStack.length-1];if(log[e.p]&&log[e.p].h&&log[e.p].h.length){undoRow(e.p);return true}undoStack.pop()}return false}
+function renderUndoBar(){const bar=$('#undobar');const e=undoStack[undoStack.length-1];if(!e){bar.hidden=true;return}const d=BY[e.p];bar.hidden=false;$('#undomsg').innerHTML=`Last: <b>${esc(e.a)}</b> · ${esc(d?d.n:'+'+e.p)}`;$('#undoall').textContent='Undo ('+undoStack.length+')'}
+function persist(){const ok=store.set('log',log);store.set('undoStack',undoStack);if(!ok)renderBanners();renderUndoBar()}
+function sentToday(){const s=sod(now());let n=0;for(const p in log)for(const e of (log[p].ev||[]))if(e.t>=s&&SEND_ACTS.includes(e.a))n++;
+// legacy rows sent before event tracking
+return n}
+function chips(id,list,cur,attr,count,alertKeys=[]){$(id).innerHTML=list.map(([k,l])=>{const c=count?count(k):null;return `<button class="chip${alertKeys.includes(k)&&c?' alert':''}" type="button" aria-pressed="${k===cur}" data-${attr}="${esc(k)}">${esc(l)}${c!==null?' · '+c:''}</button>`}).join('')}
+function renderChips(){
+const b=DATA.filter(base),cnt={};b.forEach(d=>{const s=st(d);cnt[s]=(cnt[s]||0)+1});
+chips('#statuses',STATUSES,status,'st',k=>k==='all'?b.length:(cnt[k]||0),['due','laterdue']);
+chips('#countries',COUNTRIES,ctry,'c',k=>DATA.filter(d=>(k==='All'||d.k===k)&&inS(d,site)&&inW(d,wa)).length);
+chips('#sites',SITES,site,'s',k=>DATA.filter(d=>inC(d)&&inS(d,k)&&inW(d,wa)).length);
+chips('#wa',WA,wa,'w',k=>DATA.filter(d=>inC(d)&&inS(d,site)&&inW(d,k)).length);
+}
+function renderStats(){
+const cnt={};DATA.forEach(d=>{const s=st(d);cnt[s]=(cnt[s]||0)+1});
+const contacted=DATA.length-(cnt.new||0)-(cnt.nowa||0);
+const replies=(cnt.demo||0)+(cnt.replied||0)+(cnt.later||0)+(cnt.laterdue||0)+(cnt.stop||0);
+const rate=contacted?Math.round(replies/contacted*100):0;const today=sentToday();
+const tiles=[[today+' / '+DAILY_CAP,'Sent today',today>=DAILY_CAP?'limit':'',null],[cnt.due||0,'Follow-ups due',cnt.due?'hot':'','due'],[cnt.laterdue||0,'Call backs due',cnt.laterdue?'hot':'','laterdue'],[cnt.demo||0,'Demo requested','demo','demo'],[cnt.later||0,'Message later','','later'],[cnt.wait||0,'Waiting','','wait'],[rate+'%','Reply rate','',null],[cnt.stop||0,'Stopped','','stop']];
+$('#stats').innerHTML=tiles.map(([n,l,c,k])=>`<${k?'button type="button"':'div'} class="stat ${c}" ${k?`data-go="${k}"`:''}><b>${n}</b><span>${l}</span></${k?'button':'div'}>`).join('');
+}
+function renderMonitor(){
+const t0=sod(now());const over={f:0,c:0};const buckets=Array.from({length:7},()=>({f:0,c:0}));
+for(const d of DATA){const r=L(d),s=st(d);let when=null,kind=null;
+if(s==='due'||s==='wait'){when=dueAt(r);kind='f'}else if(s==='laterdue'||s==='later'){if(r.cb){when=r.cb;kind='c'}}
+if(when==null)continue;const off=Math.floor((sod(when)-t0)/DAY);
+if(off<0)over[kind]++;else if(off<7)buckets[off][kind]++}
+$('#today').textContent='Today: '+new Date().toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+const cells=[`<button type="button" class="dayc over" data-go="${over.f||!over.c?'due':'laterdue'}"><b>Overdue</b>${over.f} follow-up${over.f===1?'':'s'}<br>${over.c} call back${over.c===1?'':'s'}</button>`];
+buckets.forEach((b,i)=>{const lab=i===0?'Today':i===1?'Tomorrow':new Date(t0+i*DAY).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+cells.push(`<div class="dayc${i===0?' today':''}"><b>${lab}</b>${b.f} follow-up${b.f===1?'':'s'}<br>${b.c} call back${b.c===1?'':'s'}</div>`)});
+$('#days').innerHTML=cells.join('');
+}
+function renderBanners(){const out=[];
+if(!storageOK)out.push('<div class="banner bad">This browser is blocking saved progress (private mode or storage turned off). Open the file in a normal Chrome or Safari window, or your sends and replies will be lost.</div>');
+const last=store.get('lastBackup',0),acts=Object.keys(log).length;
+if(storageOK&&acts>=10&&now()-last>3*DAY)out.push(`<div class="banner warn">${last?'Last backup '+day(last)+'.':'No backup yet.'} You have ${acts} roofers with progress. <button class="btn-sm" type="button" data-bk="1">Download backup</button></div>`);
+$('#banners').innerHTML=out.join('');}
+function stageText(d){const r=L(d),s=st(d);
+if(s==='stop')return 'Asked to stop '+day(r.ot||r.t||now())+'. Never message again';
+if(s==='nowa')return 'Not on WhatsApp';
+if(s==='demo')return 'Demo requested '+day(r.ot||now())+'. Send the opt-in link and build it';
+if(s==='replied')return 'Replied '+day(r.ot||now())+'. Follow-ups stopped';
+if(s==='later')return r.ci&&r.cb&&r.ci>=r.cb?'Check-in sent '+day(r.ci)+'. Waiting for reply':(r.cb?'Message later. Call back on '+day(r.cb):'Message later. No date set yet');
+if(s==='laterdue'){const n=daysBetween(r.cb,now());return 'Call back due'+(n>0?' (overdue '+n+'d)':' today')}
+if(s==='new')return 'Not contacted yet';
+if(s==='due'){const n=daysBetween(dueAt(r),now());return 'Main sent '+day(r.t)+' · follow-up '+(n>0?'overdue '+n+'d':'due today')}
+if(s==='wait')return 'Main sent '+day(r.t)+' · follow-up on '+day(dueAt(r));
+return 'Follow-up sent '+day(r.t)+'. No reply yet. Sequence complete'}
+function statusPill(d){const s=st(d),r=L(d);
+if(s==='due'){const n=daysBetween(dueAt(r),now());return n>0?`<span class="pill over">Overdue ${n}d</span>`:'<span class="pill due">Due</span>'}
+return {wait:'<span class="pill wait">Waiting</span>',laterdue:'<span class="pill due">Call back</span>',later:'<span class="pill later">Later</span>',demo:'<span class="pill demo">Demo requested</span>',replied:'<span class="pill">Replied</span>',nore:'<span class="pill fin">No reply</span>',stop:'<span class="pill stop">Stopped</span>',nowa:'<span class="pill stop">No WhatsApp</span>'}[s]||''}
+function sendBtn(d){const s=st(d),r=L(d);
+if(s==='new')return `<a class="send" data-k="${d.w?'A':'B'}" href="${link(d,d.w?'A':'B')}" target="_blank" rel="noopener">Send main message</a>`;
+if(s==='due')return `<a class="send" data-k="F1" href="${link(d,'F1')}" target="_blank" rel="noopener">Send follow-up</a>`;
+if(s==='wait')return `<a class="send early" data-k="F1" href="${link(d,'F1')}" target="_blank" rel="noopener">Send follow-up early</a>`;
+if(s==='laterdue')return `<a class="send" data-k="L" href="${link(d,'L')}" target="_blank" rel="noopener">Send check-in</a>`;
+if(s==='later'||s==='demo'||s==='replied'||s==='nore')return `<a class="send plain" data-k="open" href="https://wa.me/${d.p}" target="_blank" rel="noopener">Open chat</a>`;
+return ''}
+const OUT=[['demo','Demo requested','demo'],['later','Message me later',''],['replied','Replied (other)',''],['stop','Asked to stop','bad'],['nowa','Not on WhatsApp','bad']];
+function panel(d){const r=L(d);const cb=r.cb?isoDate(r.cb):'';
+return `<details class="upd"${openRows.has(d.p)?' open':''}>
+<summary>Update${r.x?'':' (log reply)'}</summary><div class="panel">
+<div class="lbl">What did they say?</div>
+<div class="grp">${OUT.map(([k,l,c])=>`<button type="button" class="btn-sm out ${c}${r.x===k?' on':''}" data-x="${k}" aria-pressed="${r.x===k}">${l}</button>`).join('')}${r.x?'<button type="button" class="btn-sm clr">Clear reply</button>':''}</div>
+    ${r.x==='later'?`<div class="lbl">Message them again on</div><div class="later-box"><input type="date" class="cbd" value="${cb}" min="${isoDate(now())}" aria-label="Call back date">${[7,14,30,60].map(n=>`<button type="button" class="btn-sm cbq" data-n="${n}">${n} days</button>`).join('')}</div>`:''}
+    <label class="lbl" for="n_${d.p}">Notes</label>
+    <textarea id="n_${d.p}" class="note" placeholder="e.g. Owner Sarah, wants booking reminders first">${esc(r.note||'')}</textarea>
+    ${(r.ev&&r.ev.length)?`<div class="lbl">History</div><ul class="tl">${r.ev.slice().reverse().map(e=>`<li>${dt(e.t)} · ${esc(e.a)}</li>`).join('')}</ul>`:''}
+    <div class="grp">${(r.h&&r.h.length)?'<button type="button" class="btn-sm undo">Undo last change</button>':''}</div>
+  </div></details>`}
+function row(d){const s=st(d),r=L(d);const loc=d.c?d.c+(d.r?', '+d.r:''):CN[d.k];
+  return `<li class="${['stop','nowa','nore'].includes(s)?'done':''}" data-p="${d.p}">
+    <div class="who"><div class="name">${esc(d.n)}</div>
+    <div class="meta"><span>${esc(loc)}</span><span class="phone">${fmt(d.p)}</span>${d.v===1?'<span class="pill wa">WhatsApp</span>':''}${d.w?'<span class="pill">Has site</span>':'<span class="pill nosite">No website</span>'}${statusPill(d)}</div>
+    <div class="stage">${stageText(d)}</div>${r.note?`<div class="note-line">Note: ${esc(r.note.length>90?r.note.slice(0,90)+'...':r.note)}</div>`:''}</div>
+    <div class="acts">${sendBtn(d)}${(r.h&&r.h.length)?'<button type="button" class="btn-sm undo" aria-label="Undo last change for this roofer">Undo</button>':''}</div>
+    ${panel(d)}
+  </li>`}
+function sortKey(d){const r=L(d),s=st(d);
+  if(s==='due'||s==='wait')return dueAt(r);if(s==='laterdue'||s==='later')return r.cb||9e15;
+  if(['demo','replied','stop','nowa'].includes(s))return -(r.ot||0);return 0}
+function render(){
+  renderBanners();renderChips();renderStats();renderMonitor();
+  let items=DATA.filter(d=>base(d)&&(status==='all'||st(d)===status)&&(!q||d.n.toLowerCase().includes(q)||(d.c||'').toLowerCase().includes(q)||d.p.includes(q.replace(/\D/g,'')||'~')));
+  if(status!=='all'&&status!=='new')items=items.slice().sort((a,b)=>sortKey(a)-sortKey(b));
+  $('#list').innerHTML=items.length?items.slice(0,shown).map(row).join('')+(items.length>shown?`<li style="padding:0;display:block"><button class="more" type="button">Show more (${items.length-shown} left)</button></li>`:''):'<li class="empty" style="display:block">No roofers match. Pick another status or country, or clear the search.</li>';
+  $('#bkinfo').textContent=store.get('lastBackup',0)?'Last backup: '+dt(store.get('lastBackup',0)):'No backup downloaded yet.';
+}
+function reset(){shown=PAGE;render()}
+function setStatus(k){status=k;store.set('status',status);reset();$('#list').scrollIntoView({behavior:'smooth',block:'start'})}
+document.querySelector('.bar').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;
+if(b.dataset.st){status=b.dataset.st;store.set('status',status)}if(b.dataset.c)ctry=b.dataset.c;if(b.dataset.s)site=b.dataset.s;if(b.dataset.w)wa=b.dataset.w;reset()});
+document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g)setStatus(g.dataset.go);const bk=e.target.closest('[data-bk]');if(bk)backup()});
+$('#q').addEventListener('input',e=>{q=e.target.value.trim().toLowerCase();reset()});
+$('#list').addEventListener('toggle',e=>{const det=e.target;if(!det.classList||!det.classList.contains('upd'))return;const p=det.closest('li').dataset.p;det.open?openRows.add(p):openRows.delete(p)},true);
+$('#list').addEventListener('click',e=>{
+if(e.target.closest('.more')){shown+=PAGE;render();return}
+const li=e.target.closest('li[data-p]');if(!li)return;const p=li.dataset.p;
+const a=e.target.closest('a.send');
+if(a){const k=a.dataset.k;if(k==='open')return;
+if(k==='L')act(p,r=>{r.ci=now();return r},'Check-in sent');
+else act(p,r=>{r.s=Math.min((r.s||0)+1,2);r.t=now();return r},k==='F1'?'Follow-up sent':'Main message sent');
+setTimeout(render,300);return}
+const o=e.target.closest('.out');
+if(o){const x=o.dataset.x;const r0=L(BY[p]);if(r0.x===x)return;
+const label={demo:'Marked: demo requested',later:'Marked: message me later',replied:'Marked: replied',stop:'Marked: asked to stop',nowa:'Marked: not on WhatsApp'}[x];
+act(p,r=>{r.x=x;r.ot=now();if(x==='later'){r.cb=r.cb&&r.cb>now()?r.cb:sod(now())+30*DAY;r.ci=null}return r},label);openRows.add(p);render();return}
+if(e.target.closest('.clr')){act(p,r=>{delete r.x;delete r.ot;delete r.cb;delete r.ci;return r},'Reply cleared');render();return}
+const qb=e.target.closest('.cbq');
+if(qb){const n=+qb.dataset.n;act(p,r=>{r.cb=sod(now())+n*DAY;r.ci=null;return r},'Call back set for '+day(sod(now())+n*DAY));render();return}
+if(e.target.closest('.undo')){if(undoRow(p))render();return}
+});
+$('#list').addEventListener('change',e=>{const li=e.target.closest('li[data-p]');if(!li)return;const p=li.dataset.p;
+if(e.target.classList.contains('cbd')){const v=e.target.value;if(!v)return;const [y,m,dd]=v.split('-').map(Number);const t=new Date(y,m-1,dd).getTime();act(p,r=>{r.cb=t;r.ci=null;return r},'Call back set for '+day(t));render()}
+if(e.target.classList.contains('note')){const v=e.target.value.trim();const r0=L(BY[p]);if((r0.note||'')===v)return;act(p,r=>{r.note=v;return r},'Note updated');render()}
+});
+// save notes even if the page is closed mid-typing
+let noteTimer;$('#list').addEventListener('input',e=>{if(!e.target.classList.contains('note'))return;const p=e.target.closest('li[data-p]').dataset.p,v=e.target.value;clearTimeout(noteTimer);noteTimer=setTimeout(()=>{const cur=(log[p]&&log[p].note)||'';if(cur===v.trim())return;act(p,r=>{r.note=v.trim();return r},'Note updated')},800)});
+function download(name,text,type){const blob=new Blob([text],{type});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}
+function stamp(){return isoDate(now())}
+function backup(){const data={app:'roofer-whatsapp-sender',v:2,saved:now(),log,templates:T};download('whatsapp-sender-backup-'+stamp()+'.json',JSON.stringify(data),'application/json');store.set('lastBackup',now());render()}
+$('#bk').addEventListener('click',backup);
+$('#imp').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!data||typeof data.log!=='object')throw 0;
+const n=Object.keys(data.log).length;if(!confirmImport(n))return;log=data.log;undoStack=[];persist();if(data.templates){KEYS.forEach(([k])=>{if(data.templates[k]){T[k]=data.templates[k];store.set('t_'+k,T[k]);$('#t_'+k).value=T[k]}})}render();$('#bkinfo').textContent='Imported '+n+' roofers from backup.'}catch(err){$('#bkinfo').textContent='That file is not a valid sender backup.'}e.target.value=''});
+function confirmImport(n){return window.confirm?window.confirm('Replace the progress in this browser with the backup ('+n+' roofers)?'):true}
+$('#csv').addEventListener('click',()=>{const head=['Business Name','Phone','City','State','Country','Website','Status','Messages sent','Last sent','Reply','Reply date','Call back date','Note'];
+const lab={new:'Not contacted',due:'Follow-up due',wait:'Waiting',laterdue:'Call back due',later:'Message later',demo:'Demo requested',replied:'Replied',nore:'No reply',stop:'Stopped',nowa:'Not on WhatsApp'};
+const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+const rows=DATA.filter(d=>log[d.p]).map(d=>{const r=L(d);return [d.n,'+'+d.p,d.c,d.r,CN[d.k],d.w,lab[st(d)],r.s||0,r.t?isoDate(r.t):'',r.x||'',r.ot?isoDate(r.ot):'',r.cb?isoDate(r.cb):'',r.note||''].map(q).join(',')});
+download('whatsapp-sender-results-'+stamp()+'.csv',[head.map(q).join(',')].concat(rows).join('\n'),'text/csv')});
+$('#editors').innerHTML=KEYS.map(([k,l])=>`<label class="tlabel" for="t_${k}">${l}</label><textarea id="t_${k}"></textarea>`).join('');
+KEYS.forEach(([k])=>{const el=$('#t_'+k);el.value=T[k];el.addEventListener('input',()=>{T[k]=el.value;store.set('t_'+k,T[k]);render()})});
+$('#reset').addEventListener('click',()=>{KEYS.forEach(([k])=>{T[k]=TPL[k];$('#t_'+k).value=T[k];store.set('t_'+k,T[k])});render()});
+// keep due dates fresh if the page stays open overnight
+setInterval(()=>{if(!document.querySelector('details.upd[open] textarea:focus'))render()},5*60*1000);
+window.addEventListener('storage',e=>{if(e.key==='log'){log=store.get('log',{});render()}});
+$('#undoall').addEventListener('click',()=>{if(undoLast())render()});
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();if(undoLast())render()}});
+render();renderUndoBar();
+</script>
+</body></html>
